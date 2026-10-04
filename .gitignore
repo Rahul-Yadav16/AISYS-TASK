@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local database & logs (runtime generated)
+*.db-journal
+*.log
+instance/
+storage/backups/*.bak
+storage/backups/*.tar.gz
+storage/staging/temp_*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
