@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AISYSConfiguration",
+  "type": "object",
+  "properties": {
+    "system": {
+      "type": "object",
+      "properties": {
+        "institution_name": { "type": "string" },
+        "institution_code": { "type": "string" },
+        "environment": { "type": "string", "enum": ["development", "testing", "isolated_production"] },
+        "secret_key": { "type": "string" },
+        "token_ttl_hours": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["institution_name", "institution_code", "environment", "secret_key"]
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "db_path": { "type": "string" },
+        "wal_mode": { "type": "boolean" },
+        "busy_timeout_ms": { "type": "integer" }
+      },
+      "required": ["db_path"]
+    },
+    "circulation_policy": {
+      "type": "object",
+      "properties": {
+        "loan_period_days": { "type": "integer", "minimum": 1 },
+        "max_renewals": { "type": "integer", "minimum": 0 },
+        "max_fine_limit": { "type": "number", "minimum": 0.0 },
+        "daily_fine_rate": { "type": "number", "minimum": 0.0 },
+        "enforce_reference_restriction": { "type": "boolean" },
+        "enforce_member_blocking": { "type": "boolean" }
+      },
+      "required": ["loan_period_days", "max_fine_limit", "enforce_reference_restriction"]
+    },
+    "rfid_middleware": {
+      "type": "object",
+      "properties": {
+        "mock_mode": { "type": "boolean" },
+        "staff_station_id": { "type": "string" },
+        "gate_id": { "type": "string" },
+        "handheld_id": { "type": "string" },
+        "offline_gate_security_bit_check": { "type": "boolean" },
+        "sound_effects_enabled": { "type": "boolean" }
+      },
+      "required": ["mock_mode", "gate_id"]
+    },
+    "interoperability": {
+      "type": "object",
+      "properties": {
+        "sip2_enabled": { "type": "boolean" },
+        "sip2_port": { "type": "integer" },
+        "ncip_version": { "type": "string" }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "email_adapter": { "type": "string", "enum": ["mock", "smtp"] },
+        "sms_adapter": { "type": "string", "enum": ["mock", "gateway"] },
+        "print_adapter": { "type": "string", "enum": ["mock", "spooler"] }
+      }
+    }
+  },
+  "required": ["system", "database", "circulation_policy", "rfid_middleware"]
+}

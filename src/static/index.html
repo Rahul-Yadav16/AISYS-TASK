@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AISYS RFID-Enabled Library Solution</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">AI</div>
+      <div class="brand-text">
+        <h1>AISYS Library</h1>
+        <span>RFID & ILMS Core</span>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <div class="nav-item active" data-target="dashboard">📊 Dashboard & KPIs</div>
+      <div class="nav-item" data-target="catalog">🔍 OPAC & Catalog</div>
+      <div class="nav-item" data-target="bookshelf">📚 Virtual Bookshelf</div>
+      <div class="nav-item" data-target="circulation">🔄 Circulation Desk</div>
+      <div class="nav-item" data-target="members">👥 Member Management</div>
+      <div class="nav-item" data-target="rfid-station">🏷️ RFID Staff Station</div>
+      <div class="nav-item" data-target="inventory">📡 Handheld Inventory</div>
+      <div class="nav-item" data-target="gate">🚪 Security Gate Monitor</div>
+      <div class="nav-item" data-target="migration">📦 20k Migration Wizard</div>
+      <div class="nav-item" data-target="admin">⚙️ System & Offline Lifecycle</div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>Host: <strong>Standalone / Isolated</strong></div>
+      <div>Session: <span id="user-display-name">Admin (ADMIN)</span></div>
+    </div>
+  </aside>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="status-badge"><span class="status-dot"></span> AISYS Online (Air-Gapped Ready)</span>
+        <span class="status-badge" style="background:#e0f2fe; color:#0369a1;">SQLite FTS5 + WAL Active</span>
+      </div>
+      <div class="topbar-right">
+        <!-- Quick Smart Card Simulator Taps -->
+        <span style="font-size:0.8rem; color:#64748b;">Fast Card Tap:</span>
+        <button class="btn btn-secondary btn-sm" onclick="App.demoSmartCardLogin('SC-ADMIN-001')">Tap Admin Card</button>
+        <button class="btn btn-secondary btn-sm" onclick="App.demoSmartCardLogin('SC-CIRC-004')">Tap Staff Card</button>
+        <button class="btn btn-secondary btn-sm" onclick="App.logout()">Logout</button>
+      </div>
+    </header>
+
+    <div class="page-container">
+
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
+      <section id="view-dashboard" class="view-section active">
+        <h2 style="margin-bottom:1rem;">Executive Library & RFID Dashboard</h2>
+        <div class="grid-4">
+          <div class="card">
+            <label>TOTAL TITLES</label>
+            <h2 id="stat-total-titles">-</h2>
+            <small style="color:var(--text-muted)">Bibliographic works catalogued</small>
+          </div>
+          <div class="card">
+            <label>PHYSICAL COPIES</label>
+            <h2 id="stat-total-items">-</h2>
+            <small style="color:var(--text-muted)">Inventory item instances</small>
+          </div>
+          <div class="card">
+            <label>TAGGED RFID COPIES</label>
+            <h2 id="stat-tagged-items" style="color:var(--primary);">-</h2>
+            <small style="color:var(--text-muted)">ISO 15693 / UHF tags active</small>
+          </div>
+          <div class="card">
+            <label>ACTIVE LOANS</label>
+            <h2 id="stat-active-loans" style="color:var(--secondary);">-</h2>
+            <small style="color:var(--text-muted)">Currently checked out</small>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <label>REGISTERED MEMBERS</label>
+            <h2 id="stat-members">-</h2>
+            <small style="color:var(--text-muted)">Students & Faculty</small>
+          </div>
+          <div class="card">
+            <label>GATE ALARM INCIDENTS</label>
+            <h2 id="stat-gate-alarms" style="color:var(--danger);">-</h2>
+            <small style="color:var(--text-muted)">Unauthorized exits detected</small>
+          </div>
+          <div class="card">
+            <label>FOOTFALL TRAFFIC</label>
+            <h2 id="stat-footfall">-</h2>
+            <small style="color:var(--text-muted)">Total gate transit events</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Security Gate Violations & Alarms</span>
+            <button class="btn btn-secondary btn-sm" onclick="App.navigate('gate')">Open Live Gate Monitor</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Type</th>
+                <th>Accession #</th>
+                <th>Title</th>
+                <th>CCTV Snapshot</th>
+              </tr>
+            </thead>
+            <tbody id="dashboard-alarms-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 2. OPAC & CATALOG SEARCH ================= -->
+      <section id="view-catalog" class="view-section">
+        <h2 style="margin-bottom:1rem;">OPAC Full-Text Search & Cataloguing</h2>
+        <div class="card">
+          <div style="display:flex; gap:0.75rem;">
+            <input type="text" id="catalog-search-input" placeholder="Search by title, author, keyword, ISBN, or call number..." onkeyup="if(event.key==='Enter') App.searchCatalog()" />
+            <button class="btn btn-primary" onclick="App.searchCatalog()" style="height:42px; margin-top:5px;">Search FTS5</button>
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('catalog-search-input').value='Algorithms'; App.searchCatalog();">Quick: Algorithms</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('catalog-search-input').value='Reference'; App.searchCatalog();">Quick: Reference Only</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('catalog-search-input').value='Artificial Intelligence'; App.searchCatalog();">Quick: AI</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Catalog Search Results</span>
+            <button class="btn btn-secondary btn-sm" onclick="App.searchCatalog()">Refresh</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title & Details</th>
+                <th>Virtual Shelf</th>
+                <th>Circulation Policy</th>
+                <th>Copies Available</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="catalog-results-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Spine Label Preview Modal -->
+        <div id="spine-label-preview-modal" class="card" style="display:none; border:2px solid var(--primary); background:#f8fafc;">
+          <div class="card-header">
+            <span class="card-title">Printable Spine & Barcode Label Layout (FR 01)</span>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('spine-label-preview-modal').style.display='none'">Close</button>
+          </div>
+          <div id="spine-svg-render" style="text-align:center; padding:1rem;"></div>
+        </div>
+      </section>
+
+      <!-- ================= 3. VIRTUAL BOOKSHELF ================= -->
+      <section id="view-bookshelf" class="view-section">
+        <div class="card-header">
+          <h2>Virtual Bookshelf Arrangement (FR 02)</h2>
+          <button class="btn btn-secondary btn-sm" onclick="App.loadBookshelf()">Reload Shelves</button>
+        </div>
+        <p style="color:var(--text-muted); margin-bottom:1rem;">Displays physical items grouped by assigned virtual stacks and ordered by classification number.</p>
+        <div id="bookshelf-container"></div>
+      </section>
+
+      <!-- ================= 4. CIRCULATION DESK ================= -->
+      <section id="view-circulation" class="view-section">
+        <h2 style="margin-bottom:1rem;">RFID Circulation Desk & Policy Enforcement</h2>
+
+        <div class="grid-2">
+          <!-- Check Out Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Desk Check-Out (Issue Item)</span>
+              <span class="badge badge-blue">Disarms Tag EAS</span>
+            </div>
+            <label>Member / Patron ID or Card UID:</label>
+            <input type="text" id="circ-member-input" value="MEM-1001" placeholder="e.g. MEM-1001" />
+            <label>Item Barcode, Accession, or Tag UID:</label>
+            <input type="text" id="circ-item-input" value="ACC-001001" placeholder="e.g. ACC-001001" />
+            <button class="btn btn-primary" onclick="App.handleCheckout()" style="width:100%;">Authorize Check-Out</button>
+
+            <!-- Policy Test Shortcuts -->
+            <div style="margin-top:1rem; border-top:1px solid var(--border); padding-top:0.75rem;">
+              <small style="color:var(--text-muted); font-weight:bold;">Test Priority Acceptance Restrictions (AC 04):</small>
+              <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.4rem;">
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('circ-member-input').value='MEM-1001'; document.getElementById('circ-item-input').value='ACC-002001'; App.handleCheckout();">
+                  Test Restriction: Check out Reference Book (ACC-002001)
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('circ-member-input').value='MEM-1003'; document.getElementById('circ-item-input').value='ACC-001002'; App.handleCheckout();">
+                  Test Restriction: Blocked Member (MEM-1003)
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('circ-member-input').value='MEM-1004'; document.getElementById('circ-item-input').value='ACC-001002'; App.handleCheckout();">
+                  Test Restriction: Member Fine Limit Exceeded ($15.50 > $10.00)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Check In Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Desk Check-In (Return Item)</span>
+              <span class="badge badge-green">Rearms Tag EAS</span>
+            </div>
+            <label>Item Barcode, Accession, or Tag UID:</label>
+            <input type="text" id="circ-return-input" value="ACC-001001" placeholder="e.g. ACC-001001" />
+            <button class="btn btn-success" onclick="App.handleCheckin()" style="width:100%;">Process Item Return</button>
+          </div>
+        </div>
+
+        <div id="circ-result-box"></div>
+      </section>
+
+      <!-- ================= 5. MEMBER MANAGEMENT ================= -->
+      <section id="view-members" class="view-section">
+        <h2 style="margin-bottom:1rem;">Member Directory & Smart Card Personalization</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Patron Card Personalization (FR 04)</span>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Member ID:</label>
+              <input type="text" id="pers-member-id" value="MEM-1001" />
+            </div>
+            <div>
+              <label>New RFID Smart Card UID:</label>
+              <input type="text" id="pers-card-uid" value="CARD-MEM-NEW-99" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="
+            fetch('/api/members/personalize-card', {
+              method: 'POST',
+              headers: App.getHeaders(),
+              body: JSON.stringify({ member_id: document.getElementById('pers-member-id').value, smart_card_uid: document.getElementById('pers-card-uid').value })
+            }).then(r => r.json()).then(d => { alert(d.message || d.detail); window.audioManager.playSuccessBeep(); });
+          ">Personalize & Bind Smart Card</button>
+        </div>
+      </section>
+
+      <!-- ================= 6. RFID STAFF STATION ================= -->
+      <section id="view-rfid-station" class="view-section">
+        <h2 style="margin-bottom:1rem;">RFID Staff Station (Tag Encoding & Validation)</h2>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Associate Tag with Catalog Item (FR 05, AC 02)</span>
+            <span class="badge badge-blue">ISO 15693 / UHF</span>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Item Accession Number or Barcode:</label>
+              <input type="text" id="tag-item-id" value="ACC-005001" />
+              <button class="btn btn-secondary btn-sm" onclick="
+                fetch('/api/rfid/validate-item', {
+                  method: 'POST',
+                  headers: App.getHeaders(),
+                  body: JSON.stringify({ item_identifier: document.getElementById('tag-item-id').value })
+                }).then(r => r.json()).then(d => alert(JSON.stringify(d, null, 2)));
+              ">Validate Item Record</button>
+            </div>
+            <div>
+              <label>RFID Tag Transponder UID:</label>
+              <input type="text" id="tag-rfid-uid" value="E00401509988A501" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="App.handleTagBinding()" style="margin-top:1rem;">Encode & Bind Tag to Item</button>
+        </div>
+
+        <div id="tagging-result-box"></div>
+      </section>
+
+      <!-- ================= 7. HANDHELD INVENTORY ================= -->
+      <section id="view-inventory" class="view-section">
+        <h2 style="margin-bottom:1rem;">Handheld RFID Shelf Inventory & Verification</h2>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Initialize Inventory Audit (FR 06, AC 05)</span>
+            <span id="inv-active-audit-indicator" class="badge badge-yellow">None</span>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>Audit Name:</label>
+              <input type="text" id="inv-audit-name" value="CS Department Shelf Audit" />
+            </div>
+            <div>
+              <label>Target Shelf Location:</label>
+              <input type="text" id="inv-shelf-target" value="Shelf-A-01" />
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="App.startShelfAudit()">Start Audit Session</button>
+        </div>
+
+        <div id="inv-burst-section" class="card" style="display:none;">
+          <div class="card-header">
+            <span class="card-title">Handheld Wand Sweep Simulation</span>
+          </div>
+          <p style="color:var(--text-muted); margin-bottom:1rem;">Simulate waving the RFID wand over the shelf. The system emits distinct audio tones and visual tags.</p>
+          <div style="display:flex; gap:0.75rem;">
+            <button class="btn btn-success" onclick="App.triggerInventoryBurst('correct')">Wave Wand: Scan Correct Items (880Hz Beep)</button>
+            <button class="btn btn-secondary" style="border-color:#b45309; color:#b45309;" onclick="App.triggerInventoryBurst('misplaced')">Wave Wand: Detect Misplaced Item (440Hz Pulse)</button>
+            <button class="btn btn-danger" onclick="App.finalizeAudit()">Finalize Audit & Detect Missing Items</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Real-Time Scan Event Stream</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tag UID</th>
+                <th>Title</th>
+                <th>Assigned Shelf</th>
+                <th>Scanned Shelf</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="inv-events-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 8. SECURITY GATE MONITOR ================= -->
+      <section id="view-gate" class="view-section">
+        <h2 style="margin-bottom:1rem;">RFID Security Gate Live Monitor & Alarms</h2>
+
+        <div id="gate-status-card" class="card">
+          <div class="card-header">
+            <span class="card-title">Security Gate Egress Simulator (FR 07, AC 06)</span>
+            <span class="badge badge-green">Antenna Gate-01 Active</span>
+          </div>
+          <p style="color:var(--text-muted); margin-bottom:1rem;">
+            Simulate pedestrians passing through the RFID security gates. If an unissued item passes (EAS = 0x00),
+            the hardware siren triggers, accession number is recorded, CCTV snapshot is captured, and an email is queued.
+          </p>
+
+          <div style="display:flex; gap:0.75rem;">
+            <button class="btn btn-danger" onclick="App.simulateGatePassage('E00401509988A101', 0)">
+              🚨 Trigger Unauthorized Removal (Unissued Book EAS 0x00)
+            </button>
+            <button class="btn btn-success" onclick="App.simulateGatePassage('E00401509988A101', 1)">
+              ✅ Authorized Exit (Checked-Out Book EAS 0x01)
+            </button>
+            <button class="btn btn-secondary" onclick="App.simulateGatePassage(null, null)">
+              🚶 Normal Footfall (No Tag)
+            </button>
+          </div>
+        </div>
+
+        <div id="gate-alarm-alert-box"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Security Gate Event Log</span>
+            <button class="btn btn-secondary btn-sm" onclick="App.loadGateEvents()">Refresh Log</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Gate ID</th>
+                <th>Event Type</th>
+                <th>Accession #</th>
+                <th>Title</th>
+                <th>CCTV Evidence</th>
+              </tr>
+            </thead>
+            <tbody id="gate-events-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 9. 20K MIGRATION WIZARD ================= -->
+      <section id="view-migration" class="view-section">
+        <h2 style="margin-bottom:1rem;">Controlled 20,000 Record Migration Wizard</h2>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Batch Migration Pipeline (FR 10, NFR 01, AC 01, AC 10)</span>
+          </div>
+          <p style="color:var(--text-muted); margin-bottom:1rem;">
+            Imports source spreadsheet into staging, rejects invalid rows, detects duplicate barcodes/accessions,
+            produces reconciliation counts, and supports one-click atomic rollback without corrupting existing records.
+          </p>
+          <div style="display:flex; gap:0.75rem;">
+            <button class="btn btn-primary" onclick="App.generate20kDataset()">
+              ⚡ Ingest 20,000 Record Dataset (sample_import_20000.csv)
+            </button>
+          </div>
+        </div>
+
+        <div id="migration-status-box"></div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Migration Batches History</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Batch ID</th>
+                <th>Filename</th>
+                <th>Total Rows</th>
+                <th>Valid</th>
+                <th>Invalid</th>
+                <th>Duplicate</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="migration-batches-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 10. SYSTEM ADMIN & OFFLINE LIFECYCLE ================= -->
+      <section id="view-admin" class="view-section">
+        <h2 style="margin-bottom:1rem;">System Administration & Offline Lifecycle</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">System Health & Liveness Probes (FR 11, NFR 07)</span>
+            </div>
+            <pre id="admin-health-display" style="background:#f8fafc; padding:0.75rem; border-radius:6px; font-size:0.8rem; overflow-x:auto;">Loading...</pre>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Offline Lifecycle & Resilience Controls (FR 12, AC 09, AC 10)</span>
+            </div>
+            <p id="admin-version-display" style="font-weight:bold; margin-bottom:0.75rem;"></p>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <button class="btn btn-secondary" onclick="App.triggerHotBackup()">💾 Create Atomic Hot Database Backup</button>
+              <button class="btn btn-primary" onclick="App.applyOfflineUpdate()">📦 Apply Offline Update Package v1.1.0</button>
+              <button class="btn btn-danger" onclick="App.rollbackOfflineUpdate()">⏪ Rollback Offline Update to v1.0.0</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Immutable Audit Trail (NFR 02)</span>
+            <button class="btn btn-secondary btn-sm" onclick="App.loadAdminDiagnostics()">Refresh Audit</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Operator</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="admin-audit-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="/static/js/audio.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

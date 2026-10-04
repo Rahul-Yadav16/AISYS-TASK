@@ -1,0 +1,40 @@
+{
+  "system": {
+    "institution_name": "AISYS Central Academic Library",
+    "institution_code": "AISYS-LIB-01",
+    "environment": "development",
+    "secret_key": "CHANGE_ME_SAMPLE_INSECURE_SECRET_FOR_LOCAL_DEV",
+    "token_ttl_hours": 8
+  },
+  "database": {
+    "db_path": "data/aisys_library.db",
+    "wal_mode": true,
+    "busy_timeout_ms": 5000
+  },
+  "circulation_policy": {
+    "loan_period_days": 14,
+    "max_renewals": 2,
+    "max_fine_limit": 10.00,
+    "daily_fine_rate": 0.50,
+    "enforce_reference_restriction": true,
+    "enforce_member_blocking": true
+  },
+  "rfid_middleware": {
+    "mock_mode": true,
+    "staff_station_id": "STAFF-READER-01",
+    "gate_id": "GATE-01",
+    "handheld_id": "HH-WAND-01",
+    "offline_gate_security_bit_check": true,
+    "sound_effects_enabled": true
+  },
+  "interoperability": {
+    "sip2_enabled": true,
+    "sip2_port": 6001,
+    "ncip_version": "2.0"
+  },
+  "notifications": {
+    "email_adapter": "mock",
+    "sms_adapter": "mock",
+    "print_adapter": "mock"
+  }
+}

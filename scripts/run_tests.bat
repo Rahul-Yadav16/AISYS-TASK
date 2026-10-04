@@ -1,0 +1,3 @@
+@echo off
+echo Running AISYS Automated Test Suite...
+.venv\Scripts\pytest -v --tb=short

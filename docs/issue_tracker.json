@@ -16,69 +16,69 @@
     {
       "id": "STAGE-2",
       "name": "Requirements and Design (D1 to D2)",
-      "status": "IN_PROGRESS",
+      "status": "COMPLETED",
       "tasks": [
         {"id": "TASK-05", "title": "Author Detailed Use Cases & Acceptance Criteria (D1)", "status": "DONE"},
         {"id": "TASK-06", "title": "Author System Data Dictionary & Schema Specification (D1)", "status": "DONE"},
-        {"id": "TASK-07", "title": "Architecture Package: Context, Component, Deployment, Interfaces, Security (D2)", "status": "IN_PROGRESS"},
-        {"id": "TASK-08", "title": "Mock Contract Specifications for SIP2, NCIP 2.0, and RFID Hardware (D2)", "status": "IN_PROGRESS"}
+        {"id": "TASK-07", "title": "Architecture Package: Context, Component, Deployment, Interfaces, Security (D2)", "status": "DONE"},
+        {"id": "TASK-08", "title": "Mock Contract Specifications for SIP2, NCIP 2.0, and RFID Hardware (D2)", "status": "DONE"}
       ]
     },
     {
       "id": "STAGE-3",
       "name": "Foundation Build (D3)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tasks": [
-        {"id": "TASK-09", "title": "Configuration Management & Sample Config with Validation", "status": "PENDING"},
-        {"id": "TASK-10", "title": "Core Security, Password Hashing & Audit Logging Service", "status": "PENDING"},
-        {"id": "TASK-11", "title": "Database Engine, Connection Pool & Versioned Migrations (V1, V2)", "status": "PENDING"},
-        {"id": "TASK-12", "title": "System Health Check & Diagnostic Endpoints", "status": "PENDING"}
+        {"id": "TASK-09", "title": "Configuration Management & Sample Config with Validation", "status": "DONE"},
+        {"id": "TASK-10", "title": "Core Security, Password Hashing & Audit Logging Service", "status": "DONE"},
+        {"id": "TASK-11", "title": "Database Engine, Connection Pool & Versioned Migrations (V1, V2)", "status": "DONE"},
+        {"id": "TASK-12", "title": "System Health Check & Diagnostic Endpoints", "status": "DONE"}
       ]
     },
     {
       "id": "STAGE-4",
       "name": "Core Library Functions (D4 to D5)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tasks": [
-        {"id": "TASK-13", "title": "Cataloguing, Serials, Items & Barcode/Spine Label Generator", "status": "PENDING"},
-        {"id": "TASK-14", "title": "Full-Text Search Engine with SQLite FTS5 & Real-Time Indexing", "status": "PENDING"},
-        {"id": "TASK-15", "title": "Circulation Engine with Overdue Fines & Policy Block Enforcement", "status": "PENDING"},
-        {"id": "TASK-16", "title": "Administrative Reports & Live Analytics Dashboard", "status": "PENDING"}
+        {"id": "TASK-13", "title": "Cataloguing, Serials, Items & Barcode/Spine Label Generator", "status": "DONE"},
+        {"id": "TASK-14", "title": "Full-Text Search Engine with SQLite FTS5 & Real-Time Indexing", "status": "DONE"},
+        {"id": "TASK-15", "title": "Circulation Engine with Overdue Fines & Policy Block Enforcement", "status": "DONE"},
+        {"id": "TASK-16", "title": "Administrative Reports & Live Analytics Dashboard", "status": "DONE"}
       ]
     },
     {
       "id": "STAGE-5",
       "name": "RFID Middleware and Integrations (D6)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tasks": [
-        {"id": "TASK-17", "title": "Device-Neutral RFID Middleware & Event Bus", "status": "PENDING"},
-        {"id": "TASK-18", "title": "Staff Station & Tag Binding / Verification Service", "status": "PENDING"},
-        {"id": "TASK-19", "title": "Handheld Inventory Scanner with Misplaced/Missing Logic & Audio/Visual Feedback", "status": "PENDING"},
-        {"id": "TASK-20", "title": "Security Gate Monitor with Offline EAS Bit, CCTV Capture & Email Queue", "status": "PENDING"},
-        {"id": "TASK-21", "title": "NCIP 2.0 & 3M SIP2 Interoperability Adapters & Mocks", "status": "PENDING"},
-        {"id": "TASK-22", "title": "Smart Card Fast Tap-Login Provider", "status": "PENDING"}
+        {"id": "TASK-17", "title": "Device-Neutral RFID Middleware & Event Bus", "status": "DONE"},
+        {"id": "TASK-18", "title": "Staff Station & Tag Binding / Verification Service", "status": "DONE"},
+        {"id": "TASK-19", "title": "Handheld Inventory Scanner with Misplaced/Missing Logic & Audio/Visual Feedback", "status": "DONE"},
+        {"id": "TASK-20", "title": "Security Gate Monitor with Offline EAS Bit, CCTV Capture & Email Queue", "status": "DONE"},
+        {"id": "TASK-21", "title": "NCIP 2.0 & 3M SIP2 Interoperability Adapters & Mocks", "status": "DONE"},
+        {"id": "TASK-22", "title": "Smart Card Fast Tap-Login Provider", "status": "DONE"}
       ]
     },
     {
       "id": "STAGE-6",
       "name": "Migration and Resilience (D7)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tasks": [
-        {"id": "TASK-23", "title": "Synthetic 20,000 Record Spreadsheet Generator", "status": "PENDING"},
-        {"id": "TASK-24", "title": "Streaming Staging Ingestion, Validation, Deduplication & Reconciliation", "status": "PENDING"},
-        {"id": "TASK-25", "title": "Atomic Rollback & Hot Database Backup/Restore Verification", "status": "PENDING"}
+        {"id": "TASK-23", "title": "Synthetic 20,000 Record Spreadsheet Generator", "status": "DONE"},
+        {"id": "TASK-24", "title": "Streaming Staging Ingestion, Validation, Deduplication & Reconciliation", "status": "DONE"},
+        {"id": "TASK-25", "title": "Atomic Rollback & Hot Database Backup/Restore Verification", "status": "DONE"}
       ]
     },
     {
       "id": "STAGE-7",
       "name": "Verification, Packaging & Delivery (D8 to D10)",
-      "status": "PENDING",
+      "status": "COMPLETED",
       "tasks": [
-        {"id": "TASK-26", "title": "Comprehensive Automated Test Suite Covering AC 01 to AC 10", "status": "PENDING"},
-        {"id": "TASK-27", "title": "Offline Installer, Update & Rollback Utility", "status": "PENDING"},
-        {"id": "TASK-28", "title": "Operational Documentation (Admin, User, API, Troubleshooting, Training)", "status": "PENDING"},
-        {"id": "TASK-29", "title": "Interactive Web User Interface & Demonstration Script", "status": "PENDING"},
-        {"id": "TASK-30", "title": "Production Readiness Backlog & Final Evaluation Release Tag", "status": "PENDING"}
+        {"id": "TASK-26", "title": "Comprehensive Automated Test Suite Covering AC 01 to AC 10", "status": "DONE"},
+        {"id": "TASK-27", "title": "Offline Installer, Update & Rollback Utility", "status": "DONE"},
+        {"id": "TASK-28", "title": "Operational Documentation (Admin, User, API, Troubleshooting, Training)", "status": "DONE"},
+        {"id": "TASK-29", "title": "Interactive Web User Interface & Demonstration Script", "status": "DONE"},
+        {"id": "TASK-30", "title": "Production Readiness Backlog & Final Evaluation Release Tag", "status": "DONE"}
       ]
     }
   ]
