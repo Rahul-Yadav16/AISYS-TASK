@@ -16,5 +16,23 @@
     "body": "URGENT SECURITY ALERT: Unauthorized item removal detected at GATE-01.\nTimestamp: 2026-10-04 13:54:20\nAccession Number: ACC-001001\nTitle: Introduction to Algorithms (4th Edition)\nTag UID: E00401509988A101\nCCTV Evidence: storage/cctv_captures/cctv_GATE-01_20261004_135420_354455.jpg\nPlease intercept patron at exit perimeter.",
     "attachment": "storage/cctv_captures/cctv_GATE-01_20261004_135420_354455.jpg",
     "status": "QUEUED_AND_DELIVERED_MOCK"
+  },
+  {
+    "timestamp": "2026-10-04T14:00:20.241802+00:00",
+    "type": "EMAIL",
+    "recipient": "security-desk@aisys.local",
+    "subject": "SECURITY ALERT - Gate Breach at GATE-01 - ACC-001001",
+    "body": "URGENT SECURITY ALERT: Unauthorized item removal detected at GATE-01.\nTimestamp: 2026-10-04 14:00:20\nAccession Number: ACC-001001\nTitle: Introduction to Algorithms (4th Edition)\nTag UID: E00401509988A101\nCCTV Evidence: storage/cctv_captures/cctv_GATE-01_20261004_140020_225608.jpg\nPlease intercept patron at exit perimeter.",
+    "attachment": "storage/cctv_captures/cctv_GATE-01_20261004_140020_225608.jpg",
+    "status": "QUEUED_AND_DELIVERED_MOCK"
+  },
+  {
+    "timestamp": "2026-10-04T14:00:49.563118+00:00",
+    "type": "EMAIL",
+    "recipient": "security-desk@aisys.local",
+    "subject": "SECURITY ALERT - Gate Breach at GATE-01 - ACC-001001",
+    "body": "URGENT SECURITY ALERT: Unauthorized item removal detected at GATE-01.\nTimestamp: 2026-10-04 14:00:49\nAccession Number: ACC-001001\nTitle: Introduction to Algorithms (4th Edition)\nTag UID: E00401509988A101\nCCTV Evidence: storage/cctv_captures/cctv_GATE-01_20261004_140049_545591.jpg\nPlease intercept patron at exit perimeter.",
+    "attachment": "storage/cctv_captures/cctv_GATE-01_20261004_140049_545591.jpg",
+    "status": "QUEUED_AND_DELIVERED_MOCK"
   }
 ]

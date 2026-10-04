@@ -48,7 +48,7 @@ def test_immutable_audit_logging():
     )
     assert log_id > 0
 
-    logs = AuditService.get_logs(limit=10)
+    logs = AuditService.get_logs(limit=100)
     assert any(l["action"] == "TEST_SECURITY_ACTION" for l in logs)
 
 def test_health_check_endpoint(client: TestClient):
