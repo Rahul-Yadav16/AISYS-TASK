@@ -9,12 +9,15 @@ import sys
 from pathlib import Path
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from src.core.config import get_config
 from src.core.database import db_manager
 from src.core.audit import AuditService
 from tools.offline_updater import OfflineUpdateManager
 from tools.db_backup_restore import create_backup, verify_and_restore
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 router = APIRouter(prefix="/api/admin", tags=["Administration & Operations"])
 
@@ -132,3 +135,18 @@ def rollback_offline_update():
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/documentation-pdf")
+def download_documentation_pdf():
+    """
+    Serves the publication-ready comprehensive documentation PDF.
+    """
+    pdf_path = BASE_DIR / "docs" / "AISYS_Comprehensive_Documentation.pdf"
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="Documentation PDF not found.")
+    from fastapi.responses import FileResponse
+    return FileResponse(
+        str(pdf_path),
+        media_type="application/pdf",
+        filename="AISYS_Comprehensive_Documentation.pdf"
+    )

@@ -25,5 +25,4 @@ storage/staging/temp_*
 # OS / IDE
 .DS_Store
 Thumbs.db
-.vscode/
 .idea/

@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start AISYS Server",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe -m uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Run Automated Tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/pytest -v",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Build Documentation PDF",
+      "type": "shell",
+      "command": "${workspaceFolder}/.venv/Scripts/python.exe tools/generate_documentation_pdf.py",
+      "problemMatcher": []
+    }
+  ]
+}
