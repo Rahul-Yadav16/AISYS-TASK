@@ -1,0 +1,12 @@
+{
+  "backup_file": "aisys_backup_20261004_140015.db",
+  "backup_path": "storage\\backups\\aisys_backup_20261004_140015.db",
+  "sha256": "ce289f5eddda7e673f1ca2766845376033bf33087a1d921fee34ebfd30345165",
+  "created_at": "2026-10-04T14:00:15.318020+00:00",
+  "database_counts": {
+    "bibliographic_records": 5,
+    "items": 6,
+    "members": 5,
+    "rfid_tags": 5
+  }
+}
