@@ -75,28 +75,50 @@ class SearchService:
         Retrieves visual bookshelf representation ordered by call number.
         Fulfills FR 02 virtual bookshelf.
         """
-        if shelf_id:
-            sql = """
-                SELECT b.id, b.title, b.author, b.call_number, b.material_type, b.virtual_shelf,
-                       b.is_reference, i.accession_number, i.status, r.tag_uid, r.eas_status
+        base_cols = """
+            b.id, b.title, b.author, b.call_number, b.material_type, b.virtual_shelf,
+            b.is_reference, b.publisher, b.publication_year, b.isbn, b.subject,
+            i.id as item_id, i.accession_number, i.barcode, i.status, i.shelf_location,
+            r.tag_uid, r.eas_status, r.memory_format
+        """
+        if shelf_id and shelf_id.strip() and shelf_id.upper() != "ALL":
+            sql = f"""
+                SELECT {base_cols}
                 FROM bibliographic_records b
                 JOIN items i ON b.id = i.biblio_id
                 LEFT JOIN rfid_tags r ON i.id = r.item_id
                 WHERE b.virtual_shelf = ?
-                ORDER BY b.call_number ASC
+                ORDER BY b.call_number ASC, i.accession_number ASC
             """
-            return db_manager.execute_query(sql, (shelf_id,))
+            return db_manager.execute_query(sql, (shelf_id.strip(),))
         else:
-            sql = """
-                SELECT b.id, b.title, b.author, b.call_number, b.material_type, b.virtual_shelf,
-                       b.is_reference, i.accession_number, i.status, r.tag_uid, r.eas_status
+            sql = f"""
+                SELECT {base_cols}
                 FROM bibliographic_records b
                 JOIN items i ON b.id = i.biblio_id
                 LEFT JOIN rfid_tags r ON i.id = r.item_id
-                ORDER BY b.virtual_shelf ASC, b.call_number ASC
-                LIMIT 100
+                ORDER BY b.virtual_shelf ASC, b.call_number ASC, i.accession_number ASC
+                LIMIT 250
             """
             return db_manager.execute_query(sql)
+
+    @staticmethod
+    def get_all_shelves() -> List[Dict[str, Any]]:
+        """
+        Retrieves list of distinct virtual shelves with book counts and availability stats.
+        Fulfills FR 02.
+        """
+        sql = """
+            SELECT b.virtual_shelf as shelf_id,
+                   COUNT(i.id) as item_count,
+                   SUM(CASE WHEN i.status = 'AVAILABLE' THEN 1 ELSE 0 END) as available_count,
+                   SUM(CASE WHEN b.is_reference = 1 THEN 1 ELSE 0 END) as reference_count
+            FROM bibliographic_records b
+            JOIN items i ON b.id = i.biblio_id
+            GROUP BY b.virtual_shelf
+            ORDER BY b.virtual_shelf ASC
+        """
+        return db_manager.execute_query(sql)
 
     @staticmethod
     def net_catalogue_lookup(isbn_or_title: str) -> Dict[str, Any]:

@@ -390,7 +390,7 @@ const App = {
   },
 
   // ================= SECURITY GATE =================
-  async simulateGatePassage(tagUid, rawEas) {
+  async simulateGatePassage(tagUid, rawEas, isOffline = false) {
     const gateCard = document.getElementById('gate-status-card');
     try {
       const res = await fetch('/api/gate/passage', {
@@ -399,7 +399,8 @@ const App = {
         body: JSON.stringify({
           gate_id: 'GATE-01',
           detected_tag_uid: tagUid,
-          raw_eas_bit: rawEas
+          raw_eas_bit: rawEas,
+          is_offline_simulation: isOffline
         })
       });
       const data = await res.json();
@@ -409,14 +410,18 @@ const App = {
         gateCard.classList.add('alarm-flash');
         setTimeout(() => gateCard.classList.remove('alarm-flash'), 4000);
 
+        const modeBadge = isOffline
+          ? '<span class="badge badge-yellow">OFFLINE ANTENNA EAS INTERROGATION (FR 07)</span>'
+          : '<span class="badge badge-red">EAS 0x00 VIOLATION</span>';
+
         document.getElementById('gate-alarm-alert-box').innerHTML = `
           <div class="card" style="border: 2px solid var(--danger); background:#fef2f2;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
               <strong style="color:var(--danger); font-size:1.1rem;">SIREN & STROBE ACTIVE! UNAUTHORIZED ITEM REMOVAL</strong>
-              <span class="badge badge-red">EAS 0x00 VIOLATION</span>
+              ${modeBadge}
             </div>
-            <p style="margin-top:0.5rem;">Accession: <strong>${data.accession_number}</strong> | Title: <strong>${data.item_title}</strong></p>
-            <p><small>Alert email queued to security. CCTV evidence snapshot captured below.</small></p>
+            <p style="margin-top:0.5rem;">Accession: <strong>${data.accession_number || 'UNCATALOGUED'}</strong> | Title: <strong>${data.item_title}</strong></p>
+            <p><small>${isOffline ? '⚡ Verified autonomous hardware bit check with ILMS network disconnected.' : 'Alert email queued to security.'} CCTV evidence snapshot captured below.</small></p>
             <div style="margin-top:0.75rem;">
               <img src="${data.cctv_image_path}" style="max-width:100%; border-radius:6px; border:1px solid #cbd5e1;" />
             </div>
@@ -424,9 +429,10 @@ const App = {
         `;
       } else {
         window.audioManager.playSuccessBeep();
+        const modeBadge = isOffline ? ' <span class="badge badge-yellow">Offline Mode Check Passed</span>' : '';
         document.getElementById('gate-alarm-alert-box').innerHTML = `
           <div class="card" style="border-left: 4px solid var(--success); background:#f0fdf4;">
-            <strong style="color:var(--success);">Passage Authorized</strong>
+            <strong style="color:var(--success);">Passage Authorized${modeBadge}</strong>
             <p>${data.message}</p>
           </div>
         `;
@@ -436,6 +442,7 @@ const App = {
       console.error("Gate error:", e);
     }
   },
+
 
   async loadGateEvents() {
     try {
@@ -685,49 +692,235 @@ const App = {
     }
   },
 
-  // ================= VIRTUAL BOOKSHELF =================
+  // ================= VIRTUAL BOOKSHELF (FR 02) =================
   async loadBookshelf() {
     try {
+      // 1. Fetch shelves metadata
+      const shelvesRes = await fetch('/api/catalog/shelves', { headers: this.getHeaders() });
+      if (shelvesRes.ok) {
+        const shelvesData = await shelvesRes.json();
+        const select = document.getElementById('bookshelf-shelf-select');
+        if (select) {
+          const currentVal = select.value || 'ALL';
+          select.innerHTML = '<option value="ALL">All Stacks (Combined View)</option>';
+          shelvesData.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.shelf_id;
+            opt.innerText = `${s.shelf_id} (${s.item_count} items - ${s.available_count} avail)`;
+            select.appendChild(opt);
+          });
+          select.value = currentVal;
+        }
+      }
+
+      // 2. Fetch all books
       const res = await fetch('/api/catalog/bookshelf', { headers: this.getHeaders() });
       const data = await res.json();
-      const container = document.getElementById('bookshelf-container');
-      container.innerHTML = '';
-
-      // Group by shelf
-      const shelves = {};
-      data.forEach(item => {
-        const shelf = item.virtual_shelf || 'Shelf-General';
-        if (!shelves[shelf]) shelves[shelf] = [];
-        shelves[shelf].push(item);
-      });
-
-      const colors = ['#1e40af', '#047857', '#b91c1c', '#7c3aed', '#b45309', '#0369a1'];
-
-      for (const [shelfName, items] of Object.entries(shelves)) {
-        const titleEl = document.createElement('h3');
-        titleEl.style.margin = '1rem 0 0.5rem 0';
-        titleEl.innerText = `${shelfName} (${items.length} items)`;
-        container.appendChild(titleEl);
-
-        const shelfDiv = document.createElement('div');
-        shelfDiv.className = 'bookshelf-shelf';
-
-        items.forEach((it, idx) => {
-          const spine = document.createElement('div');
-          spine.className = 'book-spine';
-          spine.style.backgroundColor = colors[idx % colors.length];
-          spine.title = `${it.title} | Call: ${it.call_number} | Status: ${it.status}`;
-          spine.innerText = `${it.title.slice(0, 16)} (${it.call_number})`;
-          shelfDiv.appendChild(spine);
-        });
-
-        container.appendChild(shelfDiv);
-      }
+      this.state.bookshelfData = data;
+      this.filterBookshelf();
     } catch (e) {
       console.error("Bookshelf error:", e);
     }
+  },
+
+  filterBookshelf() {
+    if (!this.state.bookshelfData) return;
+    const select = document.getElementById('bookshelf-shelf-select');
+    const selectedShelf = select ? select.value : 'ALL';
+    const searchInput = document.getElementById('bookshelf-search-input');
+    const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+    let filtered = this.state.bookshelfData;
+    if (selectedShelf !== 'ALL') {
+      filtered = filtered.filter(item => item.virtual_shelf === selectedShelf);
+    }
+    if (query) {
+      filtered = filtered.filter(item => 
+        (item.title && item.title.toLowerCase().includes(query)) ||
+        (item.author && item.author.toLowerCase().includes(query)) ||
+        (item.call_number && item.call_number.toLowerCase().includes(query)) ||
+        (item.accession_number && item.accession_number.toLowerCase().includes(query))
+      );
+    }
+
+    // Update stats bar
+    const total = filtered.length;
+    const avail = filtered.filter(it => it.status === 'AVAILABLE' && !it.is_reference).length;
+    const ref = filtered.filter(it => it.is_reference).length;
+    const statTotal = document.getElementById('shelf-stat-total');
+    const statAvail = document.getElementById('shelf-stat-avail');
+    const statRef = document.getElementById('shelf-stat-ref');
+    if (statTotal) statTotal.innerText = `📚 Total Copies: ${total}`;
+    if (statAvail) statAvail.innerText = `🟢 Available: ${avail}`;
+    if (statRef) statRef.innerText = `🔴 Reference: ${ref}`;
+
+    this.renderBookshelf(filtered);
+  },
+
+  renderBookshelf(items) {
+    const container = document.getElementById('bookshelf-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!items || items.length === 0) {
+      container.innerHTML = '<div class="card" style="text-align:center; padding:2rem; color:var(--text-muted);">No books match the selected stack filter or search criteria.</div>';
+      return;
+    }
+
+    // Group by shelf
+    const shelves = {};
+    items.forEach(item => {
+      const shelf = item.virtual_shelf || 'Shelf-General';
+      if (!shelves[shelf]) shelves[shelf] = [];
+      shelves[shelf].push(item);
+    });
+
+    // Rich color palette for leather/cloth spine textures
+    const palettes = [
+      { bg: '#1e3a5f', border: '#2563eb' }, // Navy
+      { bg: '#581c87', border: '#7c3aed' }, // Royal Violet
+      { bg: '#14532d', border: '#16a34a' }, // Deep Forest
+      { bg: '#7f1d1d', border: '#dc2626' }, // Crimson Leather
+      { bg: '#78350f', border: '#d97706' }, // Amber Leather
+      { bg: '#0f766e', border: '#0d9488' }, // Teal Cloth
+      { bg: '#334155', border: '#64748b' }  // Charcoal Cloth
+    ];
+
+    for (const [shelfName, shelfItems] of Object.entries(shelves)) {
+      const rack = document.createElement('div');
+      rack.className = 'bookshelf-rack';
+
+      const header = document.createElement('div');
+      header.className = 'shelf-bay-header';
+      header.innerHTML = `
+        <span>📚 Stack: ${shelfName}</span>
+        <span style="font-size:0.75rem; color:#fde68a;">${shelfItems.length} Physical Volumes Catalogued</span>
+      `;
+      rack.appendChild(header);
+
+      const shelfLedge = document.createElement('div');
+      shelfLedge.className = 'bookshelf-shelf';
+
+      shelfItems.forEach((it, idx) => {
+        const theme = palettes[idx % palettes.length];
+        const spine = document.createElement('div');
+        spine.className = 'book-spine';
+        spine.style.backgroundColor = theme.bg;
+        spine.style.borderTop = `3px solid ${theme.border}`;
+        
+        // Randomize slight height variation for authentic stack realism
+        const hash = (it.id * 17 + idx * 23) % 35;
+        spine.style.minHeight = `${140 + hash}px`;
+
+        // Badge indicator
+        let badgeClass = 'available';
+        if (it.is_reference) badgeClass = 'reference';
+        else if (it.status !== 'AVAILABLE') badgeClass = 'issued';
+
+        spine.innerHTML = `
+          <div class="book-spine-badge ${badgeClass}" title="${it.is_reference ? 'Reference Only (Restricted)' : it.status}"></div>
+          <div class="book-spine-gold-band"></div>
+          <div class="book-spine-title">${it.title}</div>
+          <div class="book-spine-gold-band"></div>
+          <div class="book-spine-call-tag">${it.call_number.split(' ')[0]}</div>
+        `;
+
+        spine.title = `Click to inspect: "${it.title}"\nAuthor: ${it.author}\nCall #: ${it.call_number}\nStatus: ${it.status}\nTag UID: ${it.tag_uid || 'Untagged'}`;
+        spine.onclick = () => App.openBookModal(it, theme);
+
+        shelfLedge.appendChild(spine);
+      });
+
+      rack.appendChild(shelfLedge);
+      container.appendChild(rack);
+    }
+  },
+
+  openBookModal(item, theme) {
+    this.state.selectedBook = item;
+    const modal = document.getElementById('book-inspector-modal');
+    if (!modal) return;
+
+    document.getElementById('bm-title').innerText = item.title;
+    document.getElementById('bm-author').innerText = item.author || 'Unknown Author';
+    document.getElementById('bm-shelf-badge').innerText = item.virtual_shelf || 'General Stack';
+
+    // Cover preview
+    const preview = document.getElementById('bm-cover-preview');
+    if (theme && preview) preview.style.background = `linear-gradient(135deg, ${theme.bg} 0%, #0f172a 100%)`;
+    document.getElementById('bm-cover-title').innerText = item.title;
+    document.getElementById('bm-cover-author').innerText = item.author;
+    document.getElementById('bm-cover-call').innerText = item.call_number;
+
+    // Details
+    document.getElementById('bm-call-number').innerText = item.call_number;
+    document.getElementById('bm-accession').innerText = item.accession_number || 'N/A';
+    document.getElementById('bm-barcode').innerText = item.barcode || 'N/A';
+    document.getElementById('bm-pub').innerText = `${item.publisher || 'N/A'} (${item.publication_year || 'N/A'})`;
+    document.getElementById('bm-isbn').innerText = item.isbn || 'N/A';
+    document.getElementById('bm-subject').innerText = item.subject || 'General Collection';
+    document.getElementById('bm-tag-uid').innerText = item.tag_uid || 'NO RFID TAG ATTACHED';
+
+    // Badges
+    const easBadge = document.getElementById('bm-eas-badge');
+    if (item.eas_status === 0) {
+      easBadge.innerHTML = '<span class="badge badge-red">🛡️ Armed 0x00 (In Library)</span>';
+    } else if (item.eas_status === 1) {
+      easBadge.innerHTML = '<span class="badge badge-green">🔓 Disarmed 0x01 (Issued)</span>';
+    } else {
+      easBadge.innerHTML = '<span class="badge badge-yellow">Untagged</span>';
+    }
+
+    const statusBadge = document.getElementById('bm-status-badge');
+    if (item.is_reference) {
+      statusBadge.innerHTML = '<span class="badge badge-red">Reference Only (Circulation Restricted)</span>';
+    } else if (item.status === 'AVAILABLE') {
+      statusBadge.innerHTML = '<span class="badge badge-green">Available for Loan</span>';
+    } else {
+      statusBadge.innerHTML = `<span class="badge badge-yellow">${item.status}</span>`;
+    }
+
+    modal.style.display = 'flex';
+  },
+
+  closeBookModal() {
+    const modal = document.getElementById('book-inspector-modal');
+    if (modal) modal.style.display = 'none';
+  },
+
+  quickCheckoutFromModal() {
+    const item = this.state.selectedBook;
+    this.closeBookModal();
+    if (!item) return;
+    this.navigate('circulation');
+    const input = document.getElementById('circ-item-input');
+    if (input) {
+      input.value = item.accession_number || item.barcode;
+      input.focus();
+    }
+  },
+
+  quickTagFromModal() {
+    const item = this.state.selectedBook;
+    this.closeBookModal();
+    if (!item) return;
+    this.navigate('rfid-station');
+    const input = document.getElementById('tag-item-id');
+    if (input) {
+      input.value = item.accession_number;
+      input.focus();
+    }
+  },
+
+  quickLabelFromModal() {
+    const item = this.state.selectedBook;
+    if (!item || !item.item_id) return;
+    this.closeBookModal();
+    this.navigate('catalog');
+    this.previewSpineLabel(item.item_id);
   }
 };
+
 
 window.App = App;
 document.addEventListener('DOMContentLoaded', () => App.init());

@@ -89,6 +89,14 @@ def get_virtual_bookshelf(shelf_id: Optional[str] = Query(None)):
     """
     return SearchService.get_virtual_bookshelf(shelf_id)
 
+@router.get("/shelves")
+def get_all_shelves():
+    """
+    Retrieves summary list of all virtual shelves with book counts. Fulfills FR 02.
+    """
+    return SearchService.get_all_shelves()
+
+
 @router.post("/net-catalogue")
 def net_catalogue_lookup(req: NetCatalogRequest):
     """

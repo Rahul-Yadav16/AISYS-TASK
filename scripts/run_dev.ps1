@@ -1,7 +1,9 @@
 param (
     [int]$Port = 8000,
     [string]$HostAddress = "127.0.0.1",
-    [switch]$KillExisting = $false
+    [switch]$KillExisting = $false,
+    [switch]$NoReload = $false,
+    [switch]$Background = $false
 )
 
 # PowerShell execution script for AISYS
@@ -27,9 +29,9 @@ if ($activeConn) {
         Stop-Process -Id $existingPid -Force -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 1
     } else {
-        Write-Host "Notice: The server appears to ALREADY BE RUNNING!" -ForegroundColor Green
-        Write-Host "You can open http://localhost:$Port directly in your browser." -ForegroundColor Cyan
-        Write-Host "To force-restart on port $Port, run:" -ForegroundColor Gray
+        Write-Host "Notice: The server is ALREADY ACTIVE and running!" -ForegroundColor Green
+        Write-Host "Open in browser: http://${HostAddress}:${Port}/" -ForegroundColor Cyan
+        Write-Host "To restart fresh on port $Port, run:" -ForegroundColor Gray
         Write-Host "    .\scripts\run_dev.ps1 -KillExisting" -ForegroundColor White
         Write-Host "Or to run on a different port, run:" -ForegroundColor Gray
         Write-Host "    .\scripts\run_dev.ps1 -Port 8080" -ForegroundColor White
@@ -37,7 +39,27 @@ if ($activeConn) {
     }
 }
 
+if ($Background) {
+    Write-Host "Starting server in BACKGROUND (Daemon Mode)..." -ForegroundColor Green
+    $argsList = @("-m", "uvicorn", "src.app:app", "--host", $HostAddress, "--port", "$Port")
+    $proc = Start-Process -FilePath $VenvPython -ArgumentList $argsList -PassThru -WindowStyle Hidden
+    Start-Sleep -Seconds 2
+    Write-Host "Server successfully started in background!" -ForegroundColor Green
+    Write-Host "Process ID: $($proc.Id)" -ForegroundColor Cyan
+    Write-Host "Access URL: http://${HostAddress}:${Port}/" -ForegroundColor Cyan
+    Write-Host "To stop the server at any time, run: .\scripts\stop_dev.ps1 -Port $Port" -ForegroundColor Gray
+    exit 0
+}
+
 Write-Host "Starting server on http://${HostAddress}:${Port}..." -ForegroundColor Green
-Write-Host "Press Ctrl+C to stop the server." -ForegroundColor Gray
-& $VenvPython -m uvicorn src.app:app --host $HostAddress --port $Port --reload
+Write-Host "Tip: Press Ctrl+C in this terminal to stop the server." -ForegroundColor Gray
+Write-Host "Tip: Run with -Background to keep it running independently." -ForegroundColor Gray
+
+if ($NoReload) {
+    & $VenvPython -m uvicorn src.app:app --host $HostAddress --port $Port
+} else {
+    # Strictly watch only src/ to prevent OneDrive file-sync interference with data/ or logs
+    & $VenvPython -m uvicorn src.app:app --host $HostAddress --port $Port --reload --reload-dir src
+}
+
 
